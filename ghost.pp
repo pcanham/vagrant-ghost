@@ -14,18 +14,18 @@ node default {
     timezone => 'UTC',
   }
 
-	user { 'ghost':
-	  ensure  => 'present',
-	  comment => 'Ghost Blog',
-	  home    => '/opt/ghost',
-	  shell   => '/bin/bash'
-	}
+  user { 'ghost':
+    ensure  => 'present',
+    comment => 'Ghost Blog',
+    home    => '/opt/ghost',
+    shell   => '/bin/bash'
+  }
 
   file { '/opt/ghost':
     ensure  => 'directory',
     owner   => 'ghost',
     require => User['ghost']
-	}
+  }
 
   nodejs::npm { 'ghost':
     target  => '/opt/ghost',
@@ -37,28 +37,28 @@ node default {
     recurse   => true,
     owner     => 'ghost',
     require   => Nodejs::Npm['ghost']
-	}
+  }
 
   class { 'supervisord':
     install_pip => true,
   }
 
-	supervisord::program { 'ghost':
-	  command     => '/usr/bin/node /opt/ghost/node_modules/ghost/index.js',
-	  autostart   => true,
-	  autorestart => true,
-	  user        => 'ghost',
-	  priority    => '100',
-	  environment => {
-	    'NODE_ENV'   => 'production'
-	 	}
-	}
+  supervisord::program { 'ghost':
+    command     => '/usr/bin/node /opt/ghost/node_modules/ghost/index.js',
+    autostart   => true,
+    autorestart => true,
+    user        => 'ghost',
+    priority    => '100',
+    environment => {
+      'NODE_ENV'   => 'production'
+    }
+  }
 
-	class { 'apache':
+  class { 'apache':
     default_vhost => false
-	}
+  }
 
-	apache::vhost { 'ghost.sandbox.internal':
+  apache::vhost { 'ghost.sandbox.internal':
     port          => '80',
     docroot       => '/opt/ghost/node_modules/ghost',
     proxy_dest    => 'http://localhost:2368/'
