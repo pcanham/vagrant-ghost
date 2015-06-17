@@ -1,5 +1,7 @@
 node default {
   Yumrepo <| |> -> Package <| |>
+  include epel
+  include nodejs
   # Death to the allow_virtual_packages warning
   if versioncmp($::puppetversion,'3.6.1') >= 0 {
     $allow_virtual_packages = hiera('allow_virtual_packages',false)
@@ -12,10 +14,6 @@ node default {
     timezone => 'UTC',
   }
 
-  file { '/opt/ghost':
-    ensure => 'directory',
-	}
-
 	user { 'ghost':
 	  ensure  => 'present',
 	  comment => 'Ghost Blog',
@@ -23,12 +21,23 @@ node default {
 	  shell   => '/bin/bash'
 	}
 
-  include epel
-  include nodejs
+  file { '/opt/ghost':
+    ensure  => 'directory',
+    owner   => 'ghost',
+    require => User['ghost']
+	}
 
   nodejs::npm { 'ghost':
     target  => '/opt/ghost',
+    user    => 'ghost'
   }
+
+  file { '/opt/ghost/node_modules':
+    ensure    => 'directory',
+    recurse   => true,
+    owner     => 'ghost',
+    require   => Nodejs::Npm['ghost']
+	}
 
   class { 'supervisord':
     install_pip => true,
@@ -44,4 +53,14 @@ node default {
 	    'NODE_ENV'   => 'production'
 	 	}
 	}
+
+	class { 'apache':
+    default_vhost => false
+	}
+
+	apache::vhost { 'ghost.sandbox.internal':
+    port          => '80',
+    docroot       => '/opt/ghost/node_modules/ghost',
+    proxy_dest    => 'http://localhost:2368/'
+  }
 }

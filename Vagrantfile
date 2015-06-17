@@ -5,6 +5,7 @@ $script = <<SCRIPT
 puppet module install --force stahnma-epel
 puppet module install --force puppetlabs-stdlib
 puppet module install --force puppetlabs-concat
+puppet module install --force puppetlabs-apache
 puppet module install --force saz-timezone
 puppet module install --force treydock-gpg_key
 puppet module install --force puppetlabs-nodejs
